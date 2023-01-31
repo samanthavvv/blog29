@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>第一个模板文件</title>
+</head>
+<body>
+{{ mydict.a }} <br>
+{{ mydict.c.1 }}  | {{ mydict.c }} | {{ mydict.d }} <br>
+{{ mydict.d.e }} {{ mydict.c.0 }} <br>
+{{ mydict.d.keys }} <br>
+{{ mydict.d.items }} <br>
+{{ mydict.s.1 }} <br>
+[{{ mydict.t }}] <br>
+<hr>
+
+{% if mydict.c.1 > 20 %}
+大于20
+{% elif mydict.c.1 == 11 %}
+等于11
+{% endif %}
+
+</body>
+</html>
