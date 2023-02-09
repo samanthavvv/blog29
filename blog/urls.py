@@ -15,6 +15,7 @@ Including another URLconf
 """
 import datetime
 
+import captcha
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse, HttpRequest, JsonResponse  # 导入 JsonResponse 对象
@@ -46,5 +47,6 @@ urlpatterns = [
     path('', index),
     path('index/', index),
     path('users/', include('users.urls')),  # 对 /users 的访问在 users.urls.py 中设置
-    path('posts/', include('post.urls'))
+    path('posts/', include('post.urls')),
+    path('captcha/', include('captcha.urls'))   # 图片验证码 路由
 ]

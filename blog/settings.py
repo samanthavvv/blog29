@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
-    'post'
+    'post',
+    'captcha'
 ]
 
 MIDDLEWARE = [
@@ -160,3 +161,8 @@ LOGGING = {
         },
     },
 }
+
+# 第三方库配置
+# captcha
+CAPTCHA_IMAGE_SIZE = (80,40)
+CAPTCHA_LENGTH = 4  # 4位数字的图形验证码

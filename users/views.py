@@ -1,3 +1,5 @@
+from captcha.helpers import captcha_image_url
+from captcha.models import CaptchaStore
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.auth.models import User  # django 内置的数据库用户模型
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
@@ -9,7 +11,24 @@ import simplejson
 
 from messages import Messages
 
+
 # Create your views here.
+
+# 验证码装饰器
+def test_captcha(viewfunc):
+    @wraps(viewfunc)
+    def wrapper(request: HttpRequest, *args, **kwargs):
+        try:
+            payload = simplejson.loads(request.body)
+            challenge = payload['challenge']
+            key = payload['key']
+            if challenge.lower() == CaptchaStore.objects.get(hashkey=key).response:  # captcha 提供的验证码判断方法
+                return viewfunc(request, *args, **kwargs)
+        except Exception as e:
+            print(e)
+        return JsonResponse(Messages.WRONG_CAPTCHA)
+    return wrapper
+
 
 # 自定义session 认证装饰器
 from functools import wraps
@@ -27,12 +46,13 @@ def user_login_required(viewfunc):
             print(session.items(), sep='\n\n')
             # 设置session 信息
             session["userinfo"] = {
-                "username":request.user.username,
+                "username": request.user.username,
                 "userid": request.user.id
             }
 
             return viewfunc(request, *args, *kwargs)
         return HttpResponse("认证不通过", status=401)
+
     return wrapper
 
 
@@ -48,6 +68,7 @@ def reg(req: HttpRequest):
     try:
         payload = simplejson.loads(req.body)
         username = payload["name"]  # 用索引查回来
+        # 判断所有客户端发来的数据是否合格
         # 判断用户名是否已存在？浏览器端有没有提醒过用户，永远不要相信客户端：使用模板和数据库用户对比
         count = User.objects.filter(username=username).count()
         if count > 0:  # 用户已存在
@@ -81,11 +102,12 @@ def userindex(request: HttpRequest):
 
 # 登录视图函数
 @require_POST
+@test_captcha
 def userlogin(request: HttpRequest):
     # 获取用户信息
     try:
         payload = simplejson.loads(request.body)
-        # print(type(payload), payload)  # dict
+        print(type(payload), payload)  # dict
         username = payload["name"]  # 获取到用户登录信息后，如何处理？
         password = payload['password']
         user = authenticate(request, username=username,
@@ -119,3 +141,15 @@ def userlogout(request: HttpRequest):
     logout(request)
     # print('登出后~~~~~~~sessionid=', request.session.items())
 
+
+# 验证码视图函数
+@require_GET
+def get_captcha(request: HttpRequest, *args, **kwargs):
+    try:
+        key = CaptchaStore.generate_key()  # captcha 生成的验证码
+        image_url = captcha_image_url(key)  # captcha 生成的验证码最新地址
+        print(key, image_url)
+        return JsonResponse({'key': key, 'image_url': image_url})  # 返回给前端
+    except Exception as e:
+        print(e)
+        return JsonResponse(Messages.NOT_FOUND)
