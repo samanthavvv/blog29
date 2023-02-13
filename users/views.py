@@ -49,8 +49,9 @@ def user_login_required(viewfunc):
                 "username": request.user.username,
                 "userid": request.user.id
             }
-
+            print('认证通过了')
             return viewfunc(request, *args, *kwargs)
+        print('认证未通过')
         return HttpResponse("认证不通过", status=401)
 
     return wrapper

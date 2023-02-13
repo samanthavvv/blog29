@@ -29,8 +29,10 @@ def user_login_required(exclude_method=None):
                 return viewfunc(request, *args, **kwargs)
             else:
                 if request.user.is_authenticated:
+                    print('认证通过')
                     return viewfunc(request, *args, **kwargs)
-            return HttpResponse("认证不通过", status=401)
+            print('认证不通过')
+            return JsonResponse(Messages.NOT_LOGIN, status=401)
 
         return wrapper
 
