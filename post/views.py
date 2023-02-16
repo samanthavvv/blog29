@@ -5,8 +5,10 @@ from functools import wraps
 import simplejson
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.db.transaction import atomic
+from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 
 from messages import Messages
 from post.models import Post, Content
@@ -45,7 +47,7 @@ def user_login_required(exclude_method=None):
 
 # Create your views here.
 # 详情页
-@user_login_required
+@user_login_required('get')
 def getpost(request: HttpRequest, id: int):
     try:
         print(id)
@@ -64,16 +66,17 @@ def getpost(request: HttpRequest, id: int):
 
 
 # 处理GET 请求中的参数：1. 获取参数，若无，则设置默认值；2. 处理超界问题：这是通用的处理参数，参数的边界问题各不相同，应该让参数自己处理.参考排序方法sort
-def validata(d: dict, name: str, default,type_func,  validate_fn ):
+def validata(d: dict, name: str, default, type_func, validate_fn):
     try:
         value = type_func(d.get(name, default))
         value = validate_fn(value, default)
-    except:     # 若有其它异常，比如分页值为一个字母
+    except:  # 若有其它异常，比如分页值为一个字母
         value = default
     return value
 
 
 # 博客列表页：分页
+# @method_decorator(user_login_required, name='post')
 class PostView(View):
     def get(self, request: HttpRequest, *args, **kwargs):
         try:
@@ -92,7 +95,7 @@ class PostView(View):
 
             return JsonResponse({
                 'posts': [
-                    {'id': post.id,'title': post.title}
+                    {'id': post.id, 'title': post.title}
                     for post in posts
                 ],
                 'pagination': {
@@ -101,13 +104,15 @@ class PostView(View):
                     'total': total,
                     'pages': math.ceil(total / size)
                 }
-                })
+            })
 
         except Exception as e:
             print('??????????????????', e)
             return JsonResponse(Messages.BAD_REQUEST)
 
     # @user_login_required    # user_login_required(post) 等价于 post=wrapper
+    # @method_decorator([user_login_required, csrf_protect])  # 先进行user_login_required 认证，再进行 csrf_protect 认证
+    @method_decorator([user_login_required, csrf_protect])
     def post(self, request: HttpRequest, *args, **kwargs):
         try:
             post = Post()
@@ -141,4 +146,12 @@ class PostView(View):
             }}, status=201)
         except Exception as e:
             print('****************', e)
-            return JsonResponse(Messages.BAD_REQUEST)  # 当发布失败是，需提醒用户，但提醒信息不宜过多，防止恶意猜测
+            return JsonResponse(Messages.BAD_REQUEST)  # 当发布失败是，需提醒用户，但提醒信息不宜过多，防止恶意猜测l
+
+
+# 处理前端请求 csrftoken cookie 的视图
+@user_login_required
+@ensure_csrf_cookie  # 保证请求在到达处理视图前，先返回一个csrftoken cookie
+def getToken(request: HttpRequest):
+    print('csrf token')
+    return HttpResponse()

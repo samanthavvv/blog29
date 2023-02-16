@@ -103,7 +103,7 @@ def userindex(request: HttpRequest):
 
 # 登录视图函数
 @require_POST
-@test_captcha
+# @test_captcha
 def userlogin(request: HttpRequest):
     # 获取用户信息
     try:
