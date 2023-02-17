@@ -56,7 +56,8 @@ def getpost(request: HttpRequest, id: int):
         return JsonResponse({'post': {
             'id': post.pk,
             'title': post.title,
-            'postdate': post.postdate,  # UTC 字符串
+            'postdate': post.postdate,  # UTC 字符串,
+            'author': post.author.username,
             'author_id': post.author_id,
             'content': post.content.content
         }})
@@ -82,7 +83,7 @@ class PostView(View):
         try:
             page = validata(request.GET, 'page', 1, int,
                             lambda value, default: value if value > 0 else default)
-            size = validata(request.GET, 'size', 20, int,
+            size = validata(request.GET, 'size', 10, int,
                             lambda value, default: value if value > 0 and value < 101 else default)
             print(page, size)
             start = size * (page - 1)
