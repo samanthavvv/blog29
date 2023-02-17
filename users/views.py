@@ -137,10 +137,11 @@ def userlogin(request: HttpRequest):
 @user_login_required
 def userlogout(request: HttpRequest):
     # print('~'*30)
-    # print('logout 登出视图函数')
+    print('logout 登出视图函数')
     # print('登出前~~~~~~~sessionid=', request.session.items())
     logout(request)
     # print('登出后~~~~~~~sessionid=', request.session.items())
+    return HttpResponse('登出成功', status=200)
 
 
 # 验证码视图函数
