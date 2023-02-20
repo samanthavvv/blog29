@@ -38,7 +38,7 @@ def index(request: HttpRequest):
 
     # 加载模板并填充数据的方法二
     from django.shortcuts import HttpResponse, render
-    return render(request, 'index.html', context, status=201)
+    return render(request, 'index.html', context, status=201)   # 从全局配置中，找到加载模板的路径，再从路径中找到index.html
 
 
 # 不同url path 和不同函数之间的对应关系，不管什么函数执行后，最终都应该返回结果（准备返回给客户端的中间内容，可能还会被包装）
